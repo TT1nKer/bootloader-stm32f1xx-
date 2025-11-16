@@ -26,7 +26,7 @@
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
+void MX_GPIO_Init(void);
 
 /* Private variables ---------------------------------------------------------*/
 uint32_t last_watchdog_feed = 0;
@@ -142,7 +142,7 @@ static void SystemClock_Config(void)
   * @param None
   * @retval None
   */
-static void MX_GPIO_Init(void)
+void MX_GPIO_Init(void)
 {
     GPIO_InitTypeDef GPIO_InitStruct = {0};
     

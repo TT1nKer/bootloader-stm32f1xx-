@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdbool.h>
 #include "main.h"
 #include "bootloader_config.h"
 

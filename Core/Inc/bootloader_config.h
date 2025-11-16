@@ -41,6 +41,9 @@ extern "C" {
 #define UPGRADE_STATE_ADDRESS       (CONFIG_AREA_ADDRESS + 0x08)
 
 /* Flash Page Size */
+#ifdef FLASH_PAGE_SIZE
+#undef FLASH_PAGE_SIZE
+#endif
 #define FLASH_PAGE_SIZE             1024            // STM32F103 page size is 1KB
 
 /* Upgrade Mode */
