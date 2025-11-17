@@ -21,6 +21,7 @@ extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include <stdbool.h>
 #include "main.h"
 #include "bootloader_config.h"
 
@@ -33,6 +34,7 @@ extern "C" {
 /* Exported functions prototypes ---------------------------------------------*/
 HAL_StatusTypeDef BSP_Watchdog_Init(uint32_t timeout_ms);
 void BSP_Watchdog_Feed(void);
+bool BSP_Watchdog_IsInitialized(void);
 
 #ifdef __cplusplus
 }

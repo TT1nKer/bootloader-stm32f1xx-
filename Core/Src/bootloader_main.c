@@ -29,10 +29,6 @@
 static void SystemClock_Config(void);
 void MX_GPIO_Init(void);
 
-/* Private variables ---------------------------------------------------------*/
-uint32_t last_watchdog_feed = 0;
-uint32_t last_led_toggle = 0;
-
 /* Main function -------------------------------------------------------------*/
 
 /**
@@ -51,12 +47,6 @@ int main(void)
     /* Initialize GPIO (for LED indication, etc.) */
     MX_GPIO_Init();
     
-    /* Initialize Watchdog */
-    if (BSP_Watchdog_Init(WATCHDOG_TIMEOUT_MS) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    
     /* Check upgrade flag */
     UpgradeMode_t upgrade_mode = BSP_UpgradeFlag_Get();
     
@@ -71,8 +61,10 @@ int main(void)
     }
     
     /* Enter upgrade mode */
-    /* Clear upgrade flag */
-    BSP_UpgradeFlag_Clear();
+    if (BSP_Watchdog_Init(WATCHDOG_TIMEOUT_MS) != HAL_OK)
+    {
+        Error_Handler();
+    }
     
     /* Main loop for upgrade mode */
     uint32_t last_watchdog_feed = HAL_GetTick();

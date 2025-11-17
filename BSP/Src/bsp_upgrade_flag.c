@@ -27,14 +27,14 @@
   */
 UpgradeMode_t BSP_UpgradeFlag_Get(void)
 {
-    uint32_t flag_value = BSP_Flash_ReadWord(UPGRADE_FLAG_ADDRESS);
-    
     // Check magic number
-    uint32_t magic = BSP_Flash_ReadWord(UPGRADE_FLAG_ADDRESS - 4);
+    uint32_t magic = BSP_Flash_ReadWord(UPGRADE_FLAG_MAGIC_ADDRESS);
     if (magic != UPGRADE_FLAG_MAGIC)
     {
         return UPGRADE_MODE_NONE;
     }
+    
+    uint32_t flag_value = BSP_Flash_ReadWord(UPGRADE_FLAG_ADDRESS);
     
     // Return upgrade mode (only lower 8 bits)
     return (UpgradeMode_t)(flag_value & 0xFF);
@@ -49,29 +49,24 @@ HAL_StatusTypeDef BSP_UpgradeFlag_Set(UpgradeMode_t mode)
 {
     HAL_StatusTypeDef status;
     
-    // Erase the configuration area first (if needed)
-    // Note: In practice, we might want to erase only the specific word
-    // For simplicity, we erase the whole page
-    
-    // Unlock Flash
-    HAL_FLASH_Unlock();
-    
-    // Write magic number
-    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, 
-                               UPGRADE_FLAG_ADDRESS - 4, 
-                               UPGRADE_FLAG_MAGIC);
+    status = BSP_Flash_Erase(CONFIG_AREA_ADDRESS, FLASH_PAGE_SIZE);
     if (status != HAL_OK)
     {
-        HAL_FLASH_Lock();
         return status;
     }
     
-    // Write upgrade mode
-    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, 
-                               UPGRADE_FLAG_ADDRESS, 
-                               (uint32_t)mode);
+    HAL_FLASH_Unlock();
     
-    // Lock Flash
+    status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,
+                               UPGRADE_FLAG_MAGIC_ADDRESS,
+                               UPGRADE_FLAG_MAGIC);
+    if (status == HAL_OK)
+    {
+        status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,
+                                   UPGRADE_FLAG_ADDRESS,
+                                   (uint32_t)mode);
+    }
+    
     HAL_FLASH_Lock();
     
     return status;

@@ -30,15 +30,18 @@ extern "C" {
 #define APP_END_ADDRESS             (APP_START_ADDRESS + APP_SIZE - 1)
 
 #define BACKUP_APP_ADDRESS          0x08004000      // Backup application area (optional)
-#define BACKUP_APP_SIZE              (12 * 1024)     // 12KB
+#define BACKUP_APP_SIZE             (12 * 1024)     // 12KB
+#define BACKUP_APP_END_ADDRESS      (BACKUP_APP_ADDRESS + BACKUP_APP_SIZE - 1)
 
 #define CONFIG_AREA_ADDRESS         0x08007000      // Configuration area
 #define CONFIG_AREA_SIZE            (4 * 1024)       // 4KB
+#define CONFIG_AREA_END_ADDRESS     (CONFIG_AREA_ADDRESS + CONFIG_AREA_SIZE - 1)
 
 /* Upgrade Flag Address */
-#define UPGRADE_FLAG_ADDRESS        (CONFIG_AREA_ADDRESS + 0x00)
-#define FIRMWARE_VERSION_ADDRESS    (CONFIG_AREA_ADDRESS + 0x04)
-#define UPGRADE_STATE_ADDRESS       (CONFIG_AREA_ADDRESS + 0x08)
+#define UPGRADE_FLAG_MAGIC_ADDRESS  (CONFIG_AREA_ADDRESS + 0x00)
+#define UPGRADE_FLAG_ADDRESS        (CONFIG_AREA_ADDRESS + 0x04)
+#define FIRMWARE_VERSION_ADDRESS    (CONFIG_AREA_ADDRESS + 0x08)
+#define UPGRADE_STATE_ADDRESS       (CONFIG_AREA_ADDRESS + 0x0C)
 
 /* Flash Page Size */
 #ifdef FLASH_PAGE_SIZE

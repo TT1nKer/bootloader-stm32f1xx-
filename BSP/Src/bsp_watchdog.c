@@ -18,6 +18,7 @@
 
 /* Private variables ---------------------------------------------------------*/
 static IWDG_HandleTypeDef hiwdg;
+static bool watchdog_initialized = false;
 
 /* Private function prototypes -----------------------------------------------*/
 static uint8_t CalculatePrescaler(uint32_t timeout_ms);
@@ -47,9 +48,11 @@ HAL_StatusTypeDef BSP_Watchdog_Init(uint32_t timeout_ms)
     // Initialize watchdog
     if (HAL_IWDG_Init(&hiwdg) != HAL_OK)
     {
+        watchdog_initialized = false;
         return HAL_ERROR;
     }
     
+    watchdog_initialized = true;
     return HAL_OK;
 }
 
@@ -59,7 +62,17 @@ HAL_StatusTypeDef BSP_Watchdog_Init(uint32_t timeout_ms)
   */
 void BSP_Watchdog_Feed(void)
 {
+    if (!watchdog_initialized)
+    {
+        return;
+    }
+    
     HAL_IWDG_Refresh(&hiwdg);
+}
+
+bool BSP_Watchdog_IsInitialized(void)
+{
+    return watchdog_initialized;
 }
 
 /* Private functions --------------------------------------------------------*/

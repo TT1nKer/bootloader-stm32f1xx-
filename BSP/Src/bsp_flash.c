@@ -17,6 +17,8 @@
 #include "bsp_flash.h"
 
 /* Private function prototypes -----------------------------------------------*/
+static bool IsAddressRangeValid(uint32_t address, uint32_t length);
+static bool IsPageAligned(uint32_t address);
 
 /* Exported functions --------------------------------------------------------*/
 
@@ -34,6 +36,13 @@ HAL_StatusTypeDef BSP_Flash_Erase(uint32_t address, uint32_t size)
     
     // Calculate number of pages to erase
     uint32_t num_pages = (size + FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE;
+
+    if ((size == 0U) || !IsPageAligned(address) ||
+        (size % FLASH_PAGE_SIZE) != 0U ||
+        !IsAddressRangeValid(address, size))
+    {
+        return HAL_ERROR;
+    }
     
     // Unlock Flash
     HAL_FLASH_Unlock();
@@ -62,6 +71,13 @@ HAL_StatusTypeDef BSP_Flash_Erase(uint32_t address, uint32_t size)
 HAL_StatusTypeDef BSP_Flash_Write(uint32_t address, uint8_t *data, uint32_t length)
 {
     HAL_StatusTypeDef status = HAL_OK;
+
+    if ((length == 0U) || (data == NULL) ||
+        (address & 0x1U) != 0U ||
+        !IsAddressRangeValid(address, length))
+    {
+        return HAL_ERROR;
+    }
     
     // Unlock Flash
     HAL_FLASH_Unlock();
@@ -107,6 +123,12 @@ HAL_StatusTypeDef BSP_Flash_Write(uint32_t address, uint8_t *data, uint32_t leng
   */
 HAL_StatusTypeDef BSP_Flash_Read(uint32_t address, uint8_t *data, uint32_t length)
 {
+    if ((length == 0U) || (data == NULL) ||
+        !IsAddressRangeValid(address, length))
+    {
+        return HAL_ERROR;
+    }
+
     for (uint32_t i = 0; i < length; i++)
     {
         data[i] = *((volatile uint8_t*)(address + i));
@@ -146,5 +168,25 @@ uint32_t BSP_Flash_ReadWord(uint32_t address)
     return *((volatile uint32_t*)address);
 }
 
+/* Private functions --------------------------------------------------------*/
 
+static bool IsAddressRangeValid(uint32_t address, uint32_t length)
+{
+    if (length == 0U)
+    {
+        return false;
+    }
 
+    uint32_t end_address = address + length - 1U;
+
+    bool in_app = (address >= APP_START_ADDRESS) && (end_address <= APP_END_ADDRESS);
+    bool in_backup = (address >= BACKUP_APP_ADDRESS) && (end_address <= BACKUP_APP_END_ADDRESS);
+    bool in_config = (address >= CONFIG_AREA_ADDRESS) && (end_address <= CONFIG_AREA_END_ADDRESS);
+
+    return in_app || in_backup || in_config;
+}
+
+static bool IsPageAligned(uint32_t address)
+{
+    return ((address % FLASH_PAGE_SIZE) == 0U);
+}
