@@ -33,7 +33,7 @@ ENTRY(Reset_Handler)
 MEMORY
 {
 RAM (xrw)      : ORIGIN = 0x20000000, LENGTH = 20K
-FLASH (rx)     : ORIGIN = 0x8000000, LENGTH = 4K
+FLASH (rx)     : ORIGIN = 0x8000000, LENGTH = 8K
 }
 
 /* Highest address of the user mode stack */
@@ -222,8 +222,8 @@ SECTIONS
     libgcc.a:* ( * )
   }
 
-  /* Check if Bootloader exceeds 4KB limit */
-  ASSERT((_etext - ORIGIN(FLASH)) <= 4096, "ERROR: Bootloader exceeds 4KB limit!")
+  /* Check if Bootloader exceeds 16KB limit */
+  ASSERT((_etext - ORIGIN(FLASH)) <= 8192, "ERROR: Bootloader exceeds 8KB limit!")
 
 }
 

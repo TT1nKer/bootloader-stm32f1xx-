@@ -1,0 +1,10 @@
+v1.0.0 - Initial Release
+- Essential bootloader functionality
+- 8KB flash constraint
+- SWD debugging enabled
+- Application validation and jump
+- Watchdog protection (3s timeout)
+- Upgrade flag management
+- LED indication (1Hz blink)
+- Flash operations (erase, write, read)
+

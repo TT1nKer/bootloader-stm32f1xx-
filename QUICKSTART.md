@@ -15,7 +15,7 @@ cmake ..
 # 4. 编译
 make bootloader
 
-# 5. 检查大小（必须 < 4KB）
+# 5. 检查大小（必须 < 8KB）
 make check_size
 ```
 
@@ -23,8 +23,8 @@ make check_size
 
 编译成功后，在 `build/` 目录下会生成：
 - `bootloader.elf` - ELF 格式
-- `bootloader.bin` - 二进制格式（用于烧录）
-- `bootloader.hex` - HEX 格式
+- `bootloader.bin` - 二进制格式
+- `bootloader.hex` - HEX 格式（用于烧录）
 
 ## 📏 检查大小
 
@@ -39,10 +39,21 @@ make check_size
 arm-none-eabi-size bootloader.elf
 ```
 
-**标准**：`text + data < 4096` 字节（4KB）
+**标准**：`text + data < 8192` 字节（8KB）
+**当前使用**：约 4KB（50% 占用率）
 
 ## 🔥 烧录
 
+### Windows (推荐)
+```cmd
+# 返回项目根目录
+cd ..
+
+# 使用脚本烧录
+flash_bootloader.bat
+```
+
+### Linux/macOS
 ```bash
 # 使用 st-flash
 st-flash write build/bootloader.bin 0x08000000
@@ -51,6 +62,10 @@ st-flash write build/bootloader.bin 0x08000000
 openocd -f interface/stlink.cfg -f target/stm32f1x.cfg \
     -c "program build/bootloader.elf verify reset exit"
 ```
+
+### 验证烧录成功
+- LED (PC13) 应该以 **1Hz** 频率闪烁
+- 可以随时使用 STM32CubeProgrammer 连接和调试
 
 ## 📋 前置要求
 

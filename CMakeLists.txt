@@ -13,6 +13,30 @@ cmake_minimum_required(VERSION 3.22)
 # User is responsible for the proper use of this software.
 #
 
+# ============================================================================
+# Toolchain Configuration (MUST be before project() call)
+# ============================================================================
+set(CMAKE_SYSTEM_NAME               Generic)
+set(CMAKE_SYSTEM_PROCESSOR          arm)
+
+# Some default GCC settings
+# arm-none-eabi- must be part of path environment
+set(TOOLCHAIN_PREFIX                arm-none-eabi-)
+
+# Set compiler BEFORE project() call
+set(CMAKE_C_COMPILER                ${TOOLCHAIN_PREFIX}gcc)
+set(CMAKE_ASM_COMPILER              ${CMAKE_C_COMPILER})
+set(CMAKE_CXX_COMPILER              ${TOOLCHAIN_PREFIX}g++)
+set(CMAKE_LINKER                    ${TOOLCHAIN_PREFIX}g++)
+set(CMAKE_OBJCOPY                   ${TOOLCHAIN_PREFIX}objcopy)
+set(CMAKE_SIZE                      ${TOOLCHAIN_PREFIX}size)
+
+set(CMAKE_EXECUTABLE_SUFFIX_ASM     ".elf")
+set(CMAKE_EXECUTABLE_SUFFIX_C       ".elf")
+set(CMAKE_EXECUTABLE_SUFFIX_CXX     ".elf")
+
+set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+
 # Setup compiler settings
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
@@ -26,38 +50,25 @@ endif()
 # Set the project name
 set(PROJECT_NAME bootloader)
 
+# Disable Windows-specific linker libraries before project() call
+set(CMAKE_C_STANDARD_LIBRARIES "")
+set(CMAKE_CXX_STANDARD_LIBRARIES "")
+
+# Override default linker command to avoid Windows-specific options
+set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+
 # Enable compile command to ease indexing with e.g. clangd
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
-# Core project settings
+# Core project settings (must be after compiler is set)
 project(${PROJECT_NAME} C ASM)
 message("Build type: " ${CMAKE_BUILD_TYPE})
 
-# ============================================================================
-# Toolchain Configuration
-# ============================================================================
-set(CMAKE_SYSTEM_NAME               Generic)
-set(CMAKE_SYSTEM_PROCESSOR          arm)
-
-set(CMAKE_C_COMPILER_ID GNU)
-set(CMAKE_ASM_COMPILER_ID GNU)
-
-# Some default GCC settings
-# arm-none-eabi- must be part of path environment
-set(TOOLCHAIN_PREFIX                arm-none-eabi-)
-
-set(CMAKE_C_COMPILER                ${TOOLCHAIN_PREFIX}gcc)
-set(CMAKE_ASM_COMPILER              ${CMAKE_C_COMPILER})
-set(CMAKE_CXX_COMPILER              ${TOOLCHAIN_PREFIX}g++)
-set(CMAKE_LINKER                    ${TOOLCHAIN_PREFIX}g++
-set(CMAKE_OBJCOPY                   ${TOOLCHAIN_PREFIX}objcopy)
-set(CMAKE_SIZE                      ${TOOLCHAIN_PREFIX}size)
-
-set(CMAKE_EXECUTABLE_SUFFIX_ASM     ".elf")
-set(CMAKE_EXECUTABLE_SUFFIX_C       ".elf")
-set(CMAKE_EXECUTABLE_SUFFIX_CXX     ".elf")
-
-set(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
+# Override Windows-specific linker options after project() call
+# Note: We still need nano.specs for printf, memset, etc.
+set(CMAKE_C_LINK_EXECUTABLE "<CMAKE_C_COMPILER> <FLAGS> <CMAKE_C_LINK_FLAGS> <LINK_FLAGS> <OBJECTS> -o <TARGET> <LINK_LIBRARIES>")
+set(CMAKE_C_STANDARD_LIBRARIES "")
+set(CMAKE_CXX_STANDARD_LIBRARIES "")
 
 # MCU specific flags
 set(TARGET_FLAGS "-mcpu=cortex-m3")
@@ -79,6 +90,9 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--print-memory-usage")
 # Remove wrong libob.a library dependency
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 
+# Note: We use --specs=nano.specs instead of -nostdlib to get minimal stdlib
+# This provides printf, memset, etc. without Windows-specific libraries
+
 # ============================================================================
 # Source Files
 # ============================================================================
@@ -87,7 +101,7 @@ list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 set(CORE_SOURCES
     Core/Src/bootloader_main.c
     Core/Src/system_stm32f1xx.c
-    Core/Src/stm32f1xx_it.c
+    Core/Inc/stm32f1xx_it.c
     Core/Src/stm32f1xx_hal_msp.c
     Core/Src/syscalls.c
     Core/Src/sysmem.c
@@ -133,6 +147,9 @@ add_executable(${PROJECT_NAME}
     ${HAL_SOURCES}
     ${STARTUP_SOURCE}
 )
+
+# Note: Windows-specific linker options are disabled via CMAKE_C_LINK_EXECUTABLE override
+# We keep --specs=nano.specs for minimal stdlib support (printf, memset, etc.)
 
 # ============================================================================
 # Include Directories

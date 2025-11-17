@@ -23,6 +23,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f1xx_it.h"
+#include "bsp_watchdog.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -72,11 +73,17 @@
 void NMI_Handler(void)
 {
   /* USER CODE BEGIN NonMaskableInt_IRQn 0 */
-
+  SCB->VTOR = 0x08000000;
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIOC->CRH &= ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13);
+  GPIOC->CRH |= GPIO_CRH_MODE13_0;
   /* USER CODE END NonMaskableInt_IRQn 0 */
   /* USER CODE BEGIN NonMaskableInt_IRQn 1 */
    while (1)
   {
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    BSP_Watchdog_Feed();
+    for (volatile uint32_t i = 0; i < 100000; i++);
   }
   /* USER CODE END NonMaskableInt_IRQn 1 */
 }
@@ -87,11 +94,28 @@ void NMI_Handler(void)
 void HardFault_Handler(void)
 {
   /* USER CODE BEGIN HardFault_IRQn 0 */
-
+  /* Force set VTOR to bootloader address */
+  SCB->VTOR = 0x08000000;
+  
+  /* Enable GPIOC clock for LED */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  
+  /* Configure PC13 as output (LED) */
+  GPIOC->CRH &= ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13);
+  GPIOC->CRH |= GPIO_CRH_MODE13_0;  // Output mode, 10MHz
+  
   /* USER CODE END HardFault_IRQn 0 */
   while (1)
   {
     /* USER CODE BEGIN W1_HardFault_IRQn 0 */
+    /* Blink LED rapidly to indicate HardFault */
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    
+    /* Feed watchdog to prevent reset loop */
+    BSP_Watchdog_Feed();
+    
+    /* Simple delay */
+    for (volatile uint32_t i = 0; i < 100000; i++);
     /* USER CODE END W1_HardFault_IRQn 0 */
   }
 }
@@ -102,11 +126,17 @@ void HardFault_Handler(void)
 void MemManage_Handler(void)
 {
   /* USER CODE BEGIN MemoryManagement_IRQn 0 */
-
+  SCB->VTOR = 0x08000000;
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIOC->CRH &= ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13);
+  GPIOC->CRH |= GPIO_CRH_MODE13_0;
   /* USER CODE END MemoryManagement_IRQn 0 */
   while (1)
   {
     /* USER CODE BEGIN W1_MemoryManagement_IRQn 0 */
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    BSP_Watchdog_Feed();
+    for (volatile uint32_t i = 0; i < 100000; i++);
     /* USER CODE END W1_MemoryManagement_IRQn 0 */
   }
 }
@@ -117,11 +147,17 @@ void MemManage_Handler(void)
 void BusFault_Handler(void)
 {
   /* USER CODE BEGIN BusFault_IRQn 0 */
-
+  SCB->VTOR = 0x08000000;
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIOC->CRH &= ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13);
+  GPIOC->CRH |= GPIO_CRH_MODE13_0;
   /* USER CODE END BusFault_IRQn 0 */
   while (1)
   {
     /* USER CODE BEGIN W1_BusFault_IRQn 0 */
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    BSP_Watchdog_Feed();
+    for (volatile uint32_t i = 0; i < 100000; i++);
     /* USER CODE END W1_BusFault_IRQn 0 */
   }
 }
@@ -132,11 +168,17 @@ void BusFault_Handler(void)
 void UsageFault_Handler(void)
 {
   /* USER CODE BEGIN UsageFault_IRQn 0 */
-
+  SCB->VTOR = 0x08000000;
+  __HAL_RCC_GPIOC_CLK_ENABLE();
+  GPIOC->CRH &= ~(GPIO_CRH_CNF13 | GPIO_CRH_MODE13);
+  GPIOC->CRH |= GPIO_CRH_MODE13_0;
   /* USER CODE END UsageFault_IRQn 0 */
   while (1)
   {
     /* USER CODE BEGIN W1_UsageFault_IRQn 0 */
+    HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+    BSP_Watchdog_Feed();
+    for (volatile uint32_t i = 0; i < 100000; i++);
     /* USER CODE END W1_UsageFault_IRQn 0 */
   }
 }

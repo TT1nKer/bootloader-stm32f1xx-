@@ -75,9 +75,10 @@ void HAL_MspInit(void)
 
   /* System interrupt init*/
 
-  /** DISABLE: JTAG-DP Disabled and SW-DP Disabled
+  /** DISABLE JTAG but KEEP SWD for debugging
+   * This frees PB3, PB4 (JTAG pins) while keeping PA13, PA14 (SWD pins) active
   */
-  __HAL_AFIO_REMAP_SWJ_DISABLE();
+  __HAL_AFIO_REMAP_SWJ_NOJTAG();
 
   /* USER CODE BEGIN MspInit 1 */
 
@@ -152,6 +153,7 @@ void HAL_CAN_MspDeInit(CAN_HandleTypeDef* hcan)
   }
 
 }
+
 
 /* USER CODE BEGIN 1 */
 

@@ -23,6 +23,7 @@
 #include "bsp_jump.h"
 #include "bsp_upgrade_flag.h"
 #include "bsp_watchdog.h"
+#include <stdio.h>
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
@@ -30,6 +31,7 @@ void MX_GPIO_Init(void);
 
 /* Private variables ---------------------------------------------------------*/
 uint32_t last_watchdog_feed = 0;
+uint32_t last_led_toggle = 0;
 
 /* Main function -------------------------------------------------------------*/
 
@@ -43,14 +45,17 @@ int main(void)
     HAL_Init();
     SystemClock_Config();
     
-    /* Initialize Watchdog (3 seconds timeout) */
+    /* Force set VTOR to bootloader address (prevent debugger from changing it) */
+    SCB->VTOR = BOOTLOADER_START_ADDRESS;
+    
+    /* Initialize GPIO (for LED indication, etc.) */
+    MX_GPIO_Init();
+    
+    /* Initialize Watchdog */
     if (BSP_Watchdog_Init(WATCHDOG_TIMEOUT_MS) != HAL_OK)
     {
         Error_Handler();
     }
-    
-    /* Initialize GPIO (for LED indication, etc.) */
-    MX_GPIO_Init();
     
     /* Check upgrade flag */
     UpgradeMode_t upgrade_mode = BSP_UpgradeFlag_Get();
@@ -63,42 +68,39 @@ int main(void)
             /* Jump to application */
             BSP_Jump_ToApplication();
         }
-        else
-        {
-            /* Application is invalid, stay in bootloader */
-            /* TODO: Could blink LED to indicate error */
-            Error_Handler();
-        }
-    }
-    else
-    {
-        /* Enter upgrade mode */
-        /* TODO: Initialize communication interface based on upgrade_mode */
-        /* For now, we'll just stay in bootloader */
-        
-        /* Clear upgrade flag */
-        BSP_UpgradeFlag_Clear();
-        
-        /* Main loop for upgrade mode */
-        while (1)
-        {
-            /* Feed watchdog every 500ms */
-            uint32_t current_time = HAL_GetTick();
-            if (current_time - last_watchdog_feed >= 500)
-            {
-                BSP_Watchdog_Feed();
-                last_watchdog_feed = current_time;
-            }
-            
-            /* TODO: Process upgrade messages */
-            /* ProcessCANMessages(); */
-            /* ProcessBLEMessages(); */
-            /* ProcessRFMessages(); */
-        }
     }
     
-    /* Should never reach here */
-    while (1);
+    /* Enter upgrade mode */
+    /* Clear upgrade flag */
+    BSP_UpgradeFlag_Clear();
+    
+    /* Main loop for upgrade mode */
+    uint32_t last_watchdog_feed = HAL_GetTick();
+    uint32_t last_led_toggle = HAL_GetTick();
+    
+    while (1)
+    {
+        uint32_t current_time = HAL_GetTick();
+        
+        /* Feed watchdog every 500ms */
+        if (current_time - last_watchdog_feed >= 500)
+        {
+            BSP_Watchdog_Feed();
+            last_watchdog_feed = current_time;
+        }
+        
+        /* Blink LED every 500ms to indicate bootloader is running */
+        if (current_time - last_led_toggle >= 500)
+        {
+            HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
+            last_led_toggle = current_time;
+        }
+        
+        /* TODO: Process upgrade messages */
+        /* ProcessCANMessages(); */
+        /* ProcessBLEMessages(); */
+        /* ProcessRFMessages(); */
+    }
 }
 
 /**
@@ -168,12 +170,15 @@ void MX_GPIO_Init(void)
   */
 void Error_Handler(void)
 {
-    __disable_irq();
+    /* Don't disable interrupts - we need SysTick for HAL_Delay and watchdog feeding */
     while (1)
     {
         /* Blink LED to indicate error */
         HAL_GPIO_TogglePin(GPIOC, GPIO_PIN_13);
         HAL_Delay(200);
+        
+        /* Feed watchdog to prevent reset loop */
+        BSP_Watchdog_Feed();
     }
 }
 

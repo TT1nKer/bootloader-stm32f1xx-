@@ -22,10 +22,10 @@ extern "C" {
 
 /* Memory Layout Configuration */
 #define BOOTLOADER_START_ADDRESS    0x08000000
-#define BOOTLOADER_SIZE             (4 * 1024)      // 4KB
+#define BOOTLOADER_SIZE             (8 * 1024)      // 8KB
 #define BOOTLOADER_END_ADDRESS      (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE - 1)
 
-#define APP_START_ADDRESS           0x08001000      // Application starts at 4KB offset
+#define APP_START_ADDRESS           0x08002000      // Application starts at 8KB offset
 #define APP_SIZE                    (12 * 1024)     // 12KB for application
 #define APP_END_ADDRESS             (APP_START_ADDRESS + APP_SIZE - 1)
 

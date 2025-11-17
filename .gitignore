@@ -1,31 +1,42 @@
-# Build directories
+# Build directory
 build/
-*.o
-*.a
+
+# CMake generated files (should only be in build/)
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+build.ninja
+compile_commands.json
+*.ninja
+.ninja_deps
+.ninja_log
+
+# Compiled binaries (should only be in build/)
 *.elf
 *.bin
 *.hex
 *.map
-*.lst
 
-# CMake
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-Makefile
-*.cmake
-!CMakeLists.txt
+# Object files
+*.o
+*.obj
 
-# IDE
+# Debug files
+*.d
+*.su
+
+# IDE files
 .vscode/
 .idea/
-*.swp
-*~
+*.code-workspace
 
-# OS
+# OS files
 .DS_Store
 Thumbs.db
+Desktop.ini
 
-# Debug
-*.dSYM/
-
+# Temporary files
+*.tmp
+*.bak
+*.swp
+*~
