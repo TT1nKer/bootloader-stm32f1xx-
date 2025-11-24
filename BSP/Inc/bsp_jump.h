@@ -32,8 +32,8 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 
 /* Exported functions prototypes ---------------------------------------------*/
-bool BSP_Jump_IsApplicationValid(void);
-void BSP_Jump_ToApplication(void);
+bool BSP_Jump_IsApplicationValid(uint32_t app_start_address);
+void BSP_Jump_ToApplication(uint32_t app_start_address);
 
 #ifdef __cplusplus
 }

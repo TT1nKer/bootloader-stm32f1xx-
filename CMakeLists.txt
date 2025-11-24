@@ -111,8 +111,13 @@ set(CORE_SOURCES
 set(BSP_SOURCES
     BSP/Src/bsp_flash.c
     BSP/Src/bsp_jump.c
+    BSP/Src/bsp_ota_meta.c
     BSP/Src/bsp_upgrade_flag.c
     BSP/Src/bsp_watchdog.c
+    BSP/Src/ota_download.c
+    BSP/Src/ota_security.c
+    BSP/Src/ota_transport_ble.c
+    BSP/Src/ota_transport_rf.c
 )
 
 # HAL source files (only needed modules)
@@ -190,6 +195,6 @@ add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
 add_custom_target(check_size
     COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${PROJECT_NAME}>
     DEPENDS ${PROJECT_NAME}
-    COMMENT "Checking Bootloader size (must be < 4KB)..."
+    COMMENT "Checking Bootloader size (must be < 8KB)..."
 )
 

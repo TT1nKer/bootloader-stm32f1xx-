@@ -21,13 +21,16 @@
 #include "bootloader_config.h"
 #include "bsp_flash.h"
 #include "bsp_jump.h"
+#include "bsp_ota_meta.h"
 #include "bsp_upgrade_flag.h"
 #include "bsp_watchdog.h"
-#include <stdio.h>
+#include "ota_transport.h"
 
 /* Private function prototypes -----------------------------------------------*/
 static void SystemClock_Config(void);
 void MX_GPIO_Init(void);
+static bool TryPromoteStagedImage(OtaMetadata_t *meta, bool forced_upgrade);
+static void PrepareUpgradeWindow(OtaMetadata_t *meta, bool reset_window);
 
 /* Main function -------------------------------------------------------------*/
 
@@ -47,18 +50,41 @@ int main(void)
     /* Initialize GPIO (for LED indication, etc.) */
     MX_GPIO_Init();
     
-    /* Check upgrade flag */
-    UpgradeMode_t upgrade_mode = BSP_UpgradeFlag_Get();
+    /* Load OTA metadata and resolve desired action */
+    OtaMetadata_t ota_meta;
+    BSP_OtaMeta_Load(&ota_meta);
     
-    if (upgrade_mode == UPGRADE_MODE_NONE)
+    UpgradeMode_t upgrade_mode = BSP_UpgradeFlag_Get();
+    bool forced_upgrade = (upgrade_mode != UPGRADE_MODE_NONE);
+    
+    if (!forced_upgrade)
     {
-        /* Normal boot: Check if application is valid */
-        if (BSP_Jump_IsApplicationValid())
-        {
-            /* Jump to application */
-            BSP_Jump_ToApplication();
-        }
+        TryPromoteStagedImage(&ota_meta, false);
     }
+    else
+    {
+        PrepareUpgradeWindow(&ota_meta, true);
+        BSP_UpgradeFlag_Clear();
+    }
+    
+    uint32_t active_bank_address = BSP_OtaMeta_GetBankStart(ota_meta.active_bank);
+    bool active_valid = BSP_Jump_IsApplicationValid(active_bank_address);
+    
+    bool stay_in_bootloader = (!active_valid) || forced_upgrade;
+    
+    if (!stay_in_bootloader)
+    {
+        BSP_Jump_ToApplication(active_bank_address);
+    }
+    else
+    {
+        /* No valid app or upgrade requested -> stay in bootloader */
+        PrepareUpgradeWindow(&ota_meta, stay_in_bootloader);
+    }
+    
+    OTA_DownloadService_Init();
+    OTA_TransportBle_Init();
+    OTA_TransportRf_Init();
     
     /* Enter upgrade mode */
     if (BSP_Watchdog_Init(WATCHDOG_TIMEOUT_MS) != HAL_OK)
@@ -88,10 +114,73 @@ int main(void)
             last_led_toggle = current_time;
         }
         
-        /* TODO: Process upgrade messages */
-        /* ProcessCANMessages(); */
-        /* ProcessBLEMessages(); */
-        /* ProcessRFMessages(); */
+        OTA_TransportBle_Poll();
+        OTA_TransportRf_Poll();
+    }
+}
+
+static bool TryPromoteStagedImage(OtaMetadata_t *meta, bool forced_upgrade)
+{
+    if ((meta == NULL) || forced_upgrade)
+    {
+        return false;
+    }
+    
+    bool has_ready_image = (meta->state == OTA_STATE_READY) &&
+                           BSP_OtaMeta_IsBankIndexValid(meta->staged_bank) &&
+                           (meta->staged_size > 0U);
+    
+    if (!has_ready_image)
+    {
+        return false;
+    }
+    
+    uint32_t staged_address = BSP_OtaMeta_GetBankStart(meta->staged_bank);
+    if (!BSP_Jump_IsApplicationValid(staged_address))
+    {
+        meta->last_error = OTA_ERROR_INVALID_IMAGE;
+        meta->state = OTA_STATE_ROLLBACK;
+        meta->staged_bank = OTA_BANK_INVALID;
+        BSP_OtaMeta_Save(meta);
+        return true;
+    }
+    
+    meta->active_bank = meta->staged_bank;
+    meta->staged_bank = OTA_BANK_INVALID;
+    meta->state = OTA_STATE_IDLE;
+    meta->last_error = OTA_ERROR_NONE;
+    BSP_OtaMeta_Save(meta);
+    return true;
+}
+
+static void PrepareUpgradeWindow(OtaMetadata_t *meta, bool reset_window)
+{
+    if (meta == NULL)
+    {
+        return;
+    }
+    
+    bool modified = false;
+    
+    if (reset_window || !BSP_OtaMeta_IsBankIndexValid(meta->staged_bank))
+    {
+        meta->staged_bank = BSP_OtaMeta_GetInactiveBank(meta->active_bank);
+        meta->staged_size = 0U;
+        meta->staged_crc = 0U;
+        meta->staged_version = 0U;
+        meta->last_error = OTA_ERROR_NONE;
+        modified = true;
+    }
+    
+    if (meta->state != OTA_STATE_DOWNLOADING)
+    {
+        meta->state = OTA_STATE_DOWNLOADING;
+        modified = true;
+    }
+    
+    if (modified)
+    {
+        BSP_OtaMeta_Save(meta);
     }
 }
 

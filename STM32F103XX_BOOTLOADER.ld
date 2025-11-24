@@ -4,10 +4,10 @@
 **  File        : BootloaderLinkerScript.ld
 **
 **  Abstract    : Linker script for STM32F103C8Tx Bootloader
-**                4KB FLASH (0x08000000 - 0x08000FFF) and 20KB RAM
+**                8KB FLASH (0x08000000 - 0x08001FFF) and 20KB RAM
 **
 **                Bootloader memory layout:
-**                - Flash: 0x08000000 - 0x08000FFF (4KB)
+**                - Flash: 0x08000000 - 0x08001FFF (8KB)
 **                - RAM:   0x20000000 - 0x20004FFF (20KB)
 **
 **  Target      : STMicroelectronics STM32F103C8Tx
@@ -222,7 +222,7 @@ SECTIONS
     libgcc.a:* ( * )
   }
 
-  /* Check if Bootloader exceeds 16KB limit */
+  /* Check if Bootloader exceeds 8KB limit */
   ASSERT((_etext - ORIGIN(FLASH)) <= 8192, "ERROR: Bootloader exceeds 8KB limit!")
 
 }

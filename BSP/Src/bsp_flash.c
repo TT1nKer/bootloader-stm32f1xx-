@@ -15,10 +15,16 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "bsp_flash.h"
+#include "bsp_ota_meta.h"
 
 /* Private function prototypes -----------------------------------------------*/
 static bool IsAddressRangeValid(uint32_t address, uint32_t length);
 static bool IsPageAligned(uint32_t address);
+static bool ResolveBankRange(uint32_t bank_index,
+                             uint32_t offset,
+                             uint32_t length,
+                             uint32_t *resolved_address);
+static uint32_t Crc32Update(uint32_t current_crc, uint8_t data_byte);
 
 /* Exported functions --------------------------------------------------------*/
 
@@ -179,14 +185,162 @@ static bool IsAddressRangeValid(uint32_t address, uint32_t length)
 
     uint32_t end_address = address + length - 1U;
 
-    bool in_app = (address >= APP_START_ADDRESS) && (end_address <= APP_END_ADDRESS);
-    bool in_backup = (address >= BACKUP_APP_ADDRESS) && (end_address <= BACKUP_APP_END_ADDRESS);
+    bool in_bank0 = (address >= OTA_BANK0_START_ADDRESS) && (end_address <= OTA_BANK0_END_ADDRESS);
+    bool in_bank1 = (address >= OTA_BANK1_START_ADDRESS) && (end_address <= OTA_BANK1_END_ADDRESS);
     bool in_config = (address >= CONFIG_AREA_ADDRESS) && (end_address <= CONFIG_AREA_END_ADDRESS);
+    bool in_metadata = (address >= OTA_METADATA_ADDRESS) && (end_address <= OTA_METADATA_END_ADDRESS);
 
-    return in_app || in_backup || in_config;
+    return in_bank0 || in_bank1 || in_config || in_metadata;
 }
 
 static bool IsPageAligned(uint32_t address)
 {
     return ((address % FLASH_PAGE_SIZE) == 0U);
+}
+
+HAL_StatusTypeDef BSP_Flash_EraseBank(uint32_t bank_index)
+{
+    uint32_t bank_start = BSP_OtaMeta_GetBankStart(bank_index);
+    if (bank_start == 0U)
+    {
+        return HAL_ERROR;
+    }
+
+    FLASH_EraseInitTypeDef erase = {0};
+    uint32_t page_error = 0U;
+
+    erase.TypeErase = FLASH_TYPEERASE_PAGES;
+    erase.PageAddress = bank_start;
+    erase.NbPages = OTA_BANK_SIZE / FLASH_PAGE_SIZE;
+
+    HAL_FLASH_Unlock();
+    HAL_StatusTypeDef status = HAL_FLASHEx_Erase(&erase, &page_error);
+    HAL_FLASH_Lock();
+    return status;
+}
+
+bool BSP_Flash_IsBankRangeValid(uint32_t bank_index, uint32_t offset, uint32_t length)
+{
+    return ResolveBankRange(bank_index, offset, length, NULL);
+}
+
+HAL_StatusTypeDef BSP_Flash_WriteChunk(uint32_t bank_index,
+                                       uint32_t offset,
+                                       const uint8_t *data,
+                                       uint32_t length,
+                                       uint32_t *running_crc)
+{
+    if ((data == NULL) || (length == 0U))
+    {
+        return HAL_ERROR;
+    }
+
+    uint32_t base_address = 0U;
+    if (!ResolveBankRange(bank_index, offset, length, &base_address))
+    {
+        return HAL_ERROR;
+    }
+
+    HAL_StatusTypeDef status = HAL_OK;
+    HAL_FLASH_Unlock();
+
+    for (uint32_t i = 0; i < length; i += 2U)
+    {
+        uint16_t halfword;
+
+        if (i + 1U < length)
+        {
+            halfword = data[i] | (data[i + 1U] << 8);
+        }
+        else
+        {
+            halfword = data[i] | 0xFF00U;
+        }
+
+        status = HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD,
+                                   base_address + i,
+                                   halfword);
+        if (status != HAL_OK)
+        {
+            break;
+        }
+    }
+
+    HAL_FLASH_Lock();
+
+    if ((status == HAL_OK) && (running_crc != NULL))
+    {
+        *running_crc = BSP_Flash_CalcCRC32(*running_crc, data, length);
+    }
+
+    return status;
+}
+
+uint32_t BSP_Flash_CalcCRC32(uint32_t current_crc, const uint8_t *data, uint32_t length)
+{
+    if (data == NULL || length == 0U)
+    {
+        return current_crc;
+    }
+
+    uint32_t crc = ~current_crc;
+    for (uint32_t i = 0; i < length; ++i)
+    {
+        crc = Crc32Update(crc, data[i]);
+    }
+
+    return ~crc;
+}
+
+static bool ResolveBankRange(uint32_t bank_index,
+                             uint32_t offset,
+                             uint32_t length,
+                             uint32_t *resolved_address)
+{
+    if (length == 0U)
+    {
+        return false;
+    }
+
+    if (!BSP_OtaMeta_IsBankIndexValid(bank_index))
+    {
+        return false;
+    }
+
+    if ((offset + length) > OTA_BANK_SIZE)
+    {
+        return false;
+    }
+
+    uint32_t base = BSP_OtaMeta_GetBankStart(bank_index);
+    if (base == 0U)
+    {
+        return false;
+    }
+
+    if (resolved_address != NULL)
+    {
+        *resolved_address = base + offset;
+    }
+
+    return true;
+}
+
+static uint32_t Crc32Update(uint32_t current_crc, uint8_t data_byte)
+{
+    uint32_t crc = current_crc ^ data_byte;
+
+    for (uint32_t i = 0U; i < 8U; ++i)
+    {
+        if (crc & 1U)
+        {
+            crc = (crc >> 1U) ^ 0xEDB88320U;
+        }
+        else
+        {
+            crc >>= 1U;
+        }
+    }
+
+    return crc;
 }

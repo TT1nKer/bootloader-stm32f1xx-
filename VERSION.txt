@@ -1,3 +1,10 @@
+v1.2.0 - Dual-bank OTA restructure
+- Dual-bank layout (24KB banks) with dedicated OTA metadata page
+- Bootloader flow promotes staged images + automatic rollback on failure
+- OTA download service (BLE/RF) with chunked writes and sequence checks
+- Streaming CRC32 + signature verification scaffolding (placeholders for RSA/ECDSA)
+- Flash helpers for per-bank erase/write and CRC updates
+
 v1.1.0 - Watchdog & Upgrade Flag Fixes
 - Only arm IWDG when staying in upgrade mode to keep legacy apps stable
 - Upgrade flag stored/erased safely inside config page; no more false clears

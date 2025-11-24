@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # Bootloader Size Check Script (Cross-Platform)
-# Checks if bootloader.elf is within 4KB limit
+# Checks if bootloader.elf is within 8KB limit
 # Works on Windows (Git Bash/WSL), macOS, and Linux
 #
 # Copyright (c) 2025 TT1nker (GitHub: TT1nker)

@@ -23,14 +23,21 @@ static void JumpToAddress(uint32_t address);
 /* Exported functions --------------------------------------------------------*/
 
 /**
-  * @brief  Check if application is valid
+ * @brief  Check if application located at the provided address is valid
   * @retval true if valid, false otherwise
   */
-bool BSP_Jump_IsApplicationValid(void)
+bool BSP_Jump_IsApplicationValid(uint32_t app_start_address)
 {
+    if (app_start_address == 0U)
+    {
+        return false;
+    }
+    
+    uint32_t app_end_address = app_start_address + OTA_BANK_SIZE - 1U;
+    
     // Read application vector table
-    uint32_t app_stack = BSP_Flash_ReadWord(APP_START_ADDRESS);
-    uint32_t app_entry = BSP_Flash_ReadWord(APP_START_ADDRESS + 4);
+    uint32_t app_stack = BSP_Flash_ReadWord(app_start_address);
+    uint32_t app_entry = BSP_Flash_ReadWord(app_start_address + 4U);
     
     // Check stack pointer validity (should be in RAM range)
     if (app_stack < 0x20000000 || app_stack > 0x20005000)
@@ -39,7 +46,7 @@ bool BSP_Jump_IsApplicationValid(void)
     }
     
     // Check program entry validity (should be in Flash range)
-    if (app_entry < APP_START_ADDRESS || app_entry > APP_END_ADDRESS)
+    if (app_entry < app_start_address || app_entry > app_end_address)
     {
         return false;
     }
@@ -57,7 +64,7 @@ bool BSP_Jump_IsApplicationValid(void)
   * @brief  Jump to application
   * @retval None (function never returns)
   */
-void BSP_Jump_ToApplication(void)
+void BSP_Jump_ToApplication(uint32_t app_start_address)
 {
     // 1. Disable all interrupts
     __disable_irq();
@@ -72,14 +79,14 @@ void BSP_Jump_ToApplication(void)
     SysTick->VAL = 0;
     
     // 4. Set vector table offset (application should set this, but we do it here for safety)
-    SCB->VTOR = APP_START_ADDRESS;
+    SCB->VTOR = app_start_address;
     
     // 5. Set stack pointer
-    uint32_t app_stack = BSP_Flash_ReadWord(APP_START_ADDRESS);
+    uint32_t app_stack = BSP_Flash_ReadWord(app_start_address);
     __set_MSP(app_stack);
     
     // 6. Get application entry point
-    uint32_t app_entry = BSP_Flash_ReadWord(APP_START_ADDRESS + 4);
+    uint32_t app_entry = BSP_Flash_ReadWord(app_start_address + 4U);
     
     // 7. Jump to application
     JumpToAddress(app_entry);

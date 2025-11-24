@@ -21,27 +21,41 @@ extern "C" {
 #endif
 
 /* Memory Layout Configuration */
-#define BOOTLOADER_START_ADDRESS    0x08000000
-#define BOOTLOADER_SIZE             (8 * 1024)      // 8KB
-#define BOOTLOADER_END_ADDRESS      (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE - 1)
+#define FLASH_BASE_ADDRESS          0x08000000U
+#define FLASH_TOTAL_SIZE            (64 * 1024U)
+#define FLASH_END_ADDRESS           (FLASH_BASE_ADDRESS + FLASH_TOTAL_SIZE - 1U)
 
-#define APP_START_ADDRESS           0x08002000      // Application starts at 8KB offset
-#define APP_SIZE                    (12 * 1024)     // 12KB for application
-#define APP_END_ADDRESS             (APP_START_ADDRESS + APP_SIZE - 1)
+#define BOOTLOADER_START_ADDRESS    FLASH_BASE_ADDRESS
+#define BOOTLOADER_SIZE             (8 * 1024U)     /* 8KB */
+#define BOOTLOADER_END_ADDRESS      (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE - 1U)
 
-#define BACKUP_APP_ADDRESS          0x08004000      // Backup application area (optional)
-#define BACKUP_APP_SIZE             (12 * 1024)     // 12KB
-#define BACKUP_APP_END_ADDRESS      (BACKUP_APP_ADDRESS + BACKUP_APP_SIZE - 1)
+#define OTA_BANK_SIZE               (24 * 1024U)    /* 24KB per bank */
+#define OTA_BANK0_START_ADDRESS     (BOOTLOADER_START_ADDRESS + BOOTLOADER_SIZE)        /* 0x08002000 */
+#define OTA_BANK0_END_ADDRESS       (OTA_BANK0_START_ADDRESS + OTA_BANK_SIZE - 1U)
+#define OTA_BANK1_START_ADDRESS     (OTA_BANK0_END_ADDRESS + 1U)                        /* 0x08008000 */
+#define OTA_BANK1_END_ADDRESS       (OTA_BANK1_START_ADDRESS + OTA_BANK_SIZE - 1U)       /* 0x0800DFFF */
 
-#define CONFIG_AREA_ADDRESS         0x08007000      // Configuration area
-#define CONFIG_AREA_SIZE            (4 * 1024)       // 4KB
-#define CONFIG_AREA_END_ADDRESS     (CONFIG_AREA_ADDRESS + CONFIG_AREA_SIZE - 1)
+/* OTA Metadata + Config areas (keep separate pages to avoid erase collisions) */
+#define OTA_METADATA_ADDRESS        0x0800E000U
+#define OTA_METADATA_SIZE           (4 * 1024U)
+#define OTA_METADATA_END_ADDRESS    (OTA_METADATA_ADDRESS + OTA_METADATA_SIZE - 1U)
 
-/* Upgrade Flag Address */
-#define UPGRADE_FLAG_MAGIC_ADDRESS  (CONFIG_AREA_ADDRESS + 0x00)
-#define UPGRADE_FLAG_ADDRESS        (CONFIG_AREA_ADDRESS + 0x04)
-#define FIRMWARE_VERSION_ADDRESS    (CONFIG_AREA_ADDRESS + 0x08)
-#define UPGRADE_STATE_ADDRESS       (CONFIG_AREA_ADDRESS + 0x0C)
+#define CONFIG_AREA_ADDRESS         0x0800F000U
+#define CONFIG_AREA_SIZE            (4 * 1024U)
+#define CONFIG_AREA_END_ADDRESS     (CONFIG_AREA_ADDRESS + CONFIG_AREA_SIZE - 1U)
+
+/* Legacy upgrade-flag addresses (used by watchdog/upgrade BSP helpers) */
+#define UPGRADE_FLAG_MAGIC_ADDRESS  (CONFIG_AREA_ADDRESS + 0x00U)
+#define UPGRADE_FLAG_ADDRESS        (CONFIG_AREA_ADDRESS + 0x04U)
+#define FIRMWARE_VERSION_ADDRESS    (CONFIG_AREA_ADDRESS + 0x08U)
+#define UPGRADE_STATE_ADDRESS       (CONFIG_AREA_ADDRESS + 0x0CU)
+
+/* Application helpers (defaults to Bank0 until metadata promotes Bank1) */
+#define APP_BANK_COUNT              2U
+#define APP_BANK0_INDEX             0U
+#define APP_BANK1_INDEX             1U
+#define APP_START_ADDRESS           OTA_BANK0_START_ADDRESS
+#define APP_END_ADDRESS             OTA_BANK0_END_ADDRESS
 
 /* Flash Page Size */
 #ifdef FLASH_PAGE_SIZE

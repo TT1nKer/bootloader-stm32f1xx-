@@ -67,6 +67,21 @@ openocd -f interface/stlink.cfg -f target/stm32f1x.cfg \
 - LED (PC13) 应该以 **1Hz** 频率闪烁
 - 可以随时使用 STM32CubeProgrammer 连接和调试
 
+## OTA 测试入口
+
+1. 在上位机/应用侧包含 `ota_transport.h`。
+2. 发送 `OTA_PACKET_CONTROL`：
+   - `total_size`: 固件总字节数（≤ 24KB）
+   - `crc32`: 预期 CRC32（可为 0 表示跳过）
+   - `signature` + `signature_length`: 可选签名，占位长度 64 字节
+3. 循环发送 `OTA_PACKET_DATA`：
+   - `sequence`: 从 0 递增
+   - `offset`: `sequence * OTA_MAX_CHUNK_SIZE`
+   - `length`: 本次分片长度（≤ 256 字节）
+4. 等待 bootloader 串口/BLE/RF 回传完成事件，或在下次复位时观察自动切换 Bank。
+
+> `OTA_MAX_CHUNK_SIZE = 256`，`OTA_SIGNATURE_MAX_BYTES = 64`。可根据实际传输层做二次封装。
+
 ## 📋 前置要求
 
 - **CMake** >= 3.22
