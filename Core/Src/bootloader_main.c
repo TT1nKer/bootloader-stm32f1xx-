@@ -119,6 +119,12 @@ int main(void)
     }
 }
 
+/**
+  * @brief  Attempt to promote staged firmware image to active bank
+  * @param  meta: Pointer to OTA metadata
+  * @param  forced_upgrade: If true, skip promotion logic
+  * @retval true if promotion was attempted (success or failure), false if skipped
+  */
 static bool TryPromoteStagedImage(OtaMetadata_t *meta, bool forced_upgrade)
 {
     if ((meta == NULL) || forced_upgrade)
@@ -153,6 +159,12 @@ static bool TryPromoteStagedImage(OtaMetadata_t *meta, bool forced_upgrade)
     return true;
 }
 
+/**
+  * @brief  Prepare system for OTA upgrade window
+  * @param  meta: Pointer to OTA metadata
+  * @param  reset_window: If true, reset download context and staged bank
+  * @retval None
+  */
 static void PrepareUpgradeWindow(OtaMetadata_t *meta, bool reset_window)
 {
     if (meta == NULL)

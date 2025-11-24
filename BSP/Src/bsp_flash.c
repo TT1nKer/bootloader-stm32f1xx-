@@ -176,6 +176,12 @@ uint32_t BSP_Flash_ReadWord(uint32_t address)
 
 /* Private functions --------------------------------------------------------*/
 
+/**
+  * @brief  Check if an address range is valid for Flash operations
+  * @param  address: Starting address to validate
+  * @param  length: Length of the range in bytes
+  * @retval true if the range is valid, false otherwise
+  */
 static bool IsAddressRangeValid(uint32_t address, uint32_t length)
 {
     if (length == 0U)
@@ -193,11 +199,21 @@ static bool IsAddressRangeValid(uint32_t address, uint32_t length)
     return in_bank0 || in_bank1 || in_config || in_metadata;
 }
 
+/**
+  * @brief  Check if an address is page-aligned
+  * @param  address: Address to check
+  * @retval true if page-aligned, false otherwise
+  */
 static bool IsPageAligned(uint32_t address)
 {
     return ((address % FLASH_PAGE_SIZE) == 0U);
 }
 
+/**
+  * @brief  Erase an entire Flash bank
+  * @param  bank_index: Index of the bank to erase (APP_BANK0_INDEX or APP_BANK1_INDEX)
+  * @retval HAL_StatusTypeDef
+  */
 HAL_StatusTypeDef BSP_Flash_EraseBank(uint32_t bank_index)
 {
     uint32_t bank_start = BSP_OtaMeta_GetBankStart(bank_index);
@@ -219,11 +235,27 @@ HAL_StatusTypeDef BSP_Flash_EraseBank(uint32_t bank_index)
     return status;
 }
 
+/**
+  * @brief  Check if a bank range (offset + length) is valid
+  * @param  bank_index: Bank index to check
+  * @param  offset: Offset within the bank
+  * @param  length: Length of data
+  * @retval true if valid, false otherwise
+  */
 bool BSP_Flash_IsBankRangeValid(uint32_t bank_index, uint32_t offset, uint32_t length)
 {
     return ResolveBankRange(bank_index, offset, length, NULL);
 }
 
+/**
+  * @brief  Write a chunk of data to a Flash bank and update running CRC
+  * @param  bank_index: Target bank index
+  * @param  offset: Offset within the bank
+  * @param  data: Data buffer to write
+  * @param  length: Number of bytes to write
+  * @param  running_crc: Pointer to running CRC32 value (updated if not NULL)
+  * @retval HAL_StatusTypeDef
+  */
 HAL_StatusTypeDef BSP_Flash_WriteChunk(uint32_t bank_index,
                                        uint32_t offset,
                                        const uint8_t *data,
@@ -276,6 +308,13 @@ HAL_StatusTypeDef BSP_Flash_WriteChunk(uint32_t bank_index,
     return status;
 }
 
+/**
+  * @brief  Calculate CRC32 for a block of data
+  * @param  current_crc: Current CRC value (use 0xFFFFFFFF for initial call)
+  * @param  data: Data buffer
+  * @param  length: Number of bytes
+  * @retval Updated CRC32 value
+  */
 uint32_t BSP_Flash_CalcCRC32(uint32_t current_crc, const uint8_t *data, uint32_t length)
 {
     if (data == NULL || length == 0U)
@@ -292,6 +331,14 @@ uint32_t BSP_Flash_CalcCRC32(uint32_t current_crc, const uint8_t *data, uint32_t
     return ~crc;
 }
 
+/**
+  * @brief  Resolve bank index + offset to absolute Flash address
+  * @param  bank_index: Bank index
+  * @param  offset: Offset within the bank
+  * @param  length: Length of data (for validation)
+  * @param  resolved_address: Pointer to store resolved address (can be NULL)
+  * @retval true if valid and resolved, false otherwise
+  */
 static bool ResolveBankRange(uint32_t bank_index,
                              uint32_t offset,
                              uint32_t length,
@@ -326,6 +373,12 @@ static bool ResolveBankRange(uint32_t bank_index,
     return true;
 }
 
+/**
+  * @brief  Update CRC32 with a single byte using polynomial 0xEDB88320
+  * @param  current_crc: Current CRC value
+  * @param  data_byte: Byte to process
+  * @retval Updated CRC value
+  */
 static uint32_t Crc32Update(uint32_t current_crc, uint8_t data_byte)
 {
     uint32_t crc = current_crc ^ data_byte;

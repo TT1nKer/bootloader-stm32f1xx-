@@ -70,6 +70,10 @@ void BSP_Watchdog_Feed(void)
     HAL_IWDG_Refresh(&hiwdg);
 }
 
+/**
+  * @brief  Check if watchdog is initialized
+  * @retval true if initialized, false otherwise
+  */
 bool BSP_Watchdog_IsInitialized(void)
 {
     return watchdog_initialized;

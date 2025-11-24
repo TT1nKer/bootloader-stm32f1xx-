@@ -1,3 +1,8 @@
+v1.2.1 - Comprehensive Function Documentation
+- Added Doxygen-style documentation for all custom functions (33 functions)
+- Documented both exported and private/static functions across BSP and Core modules
+- Improved code maintainability and readability with consistent documentation format
+
 v1.2.0 - Dual-bank OTA restructure
 - Dual-bank layout (24KB banks) with dedicated OTA metadata page
 - Bootloader flow promotes staged images + automatic rollback on failure

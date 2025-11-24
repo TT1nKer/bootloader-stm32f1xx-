@@ -153,6 +153,11 @@ bool BSP_OtaMeta_IsBankIndexValid(uint32_t bank_index)
 
 /* Private functions ---------------------------------------------------------*/
 
+/**
+  * @brief  Calculate checksum for OTA metadata structure
+  * @param  meta: Pointer to metadata structure
+  * @retval Calculated checksum value
+  */
 static uint32_t CalculateChecksum(const OtaMetadata_t *meta)
 {
     const uint32_t *words = (const uint32_t *)meta;
@@ -168,6 +173,11 @@ static uint32_t CalculateChecksum(const OtaMetadata_t *meta)
     return acc;
 }
 
+/**
+  * @brief  Set default values for OTA metadata
+  * @param  meta: Pointer to metadata structure to initialize
+  * @retval None
+  */
 static void SetDefaults(OtaMetadata_t *meta)
 {
     if (meta == NULL)
@@ -189,6 +199,11 @@ static void SetDefaults(OtaMetadata_t *meta)
     meta->checksum = CalculateChecksum(meta);
 }
 
+/**
+  * @brief  Normalize metadata by validating and correcting invalid fields
+  * @param  meta: Pointer to metadata structure to normalize
+  * @retval None
+  */
 static void Normalize(OtaMetadata_t *meta)
 {
     if (meta == NULL)

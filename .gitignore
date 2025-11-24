@@ -28,6 +28,7 @@ compile_commands.json
 # IDE files
 .vscode/
 .idea/
+.clangd
 *.code-workspace
 
 # OS files

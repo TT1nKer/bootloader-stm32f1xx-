@@ -61,7 +61,10 @@
 
 /* USER CODE END 0 */
 /**
-  * Initializes the Global MSP.
+  * @brief  Initialize the Global MSP (MCU Support Package)
+  * @note   This function is called from HAL_Init() to initialize low level hardware
+  * @note   JTAG is disabled to free PB3, PB4 while keeping SWD active on PA13, PA14
+  * @retval None
   */
 void HAL_MspInit(void)
 {

@@ -35,12 +35,21 @@ static bool BeginDownload(const OtaTransportPacket_t *packet);
 static bool HandleDataPacket(const OtaTransportPacket_t *packet);
 static bool FinalizeDownload(void);
 
+/**
+  * @brief  Initialize OTA download service
+  * @retval None
+  */
 void OTA_DownloadService_Init(void)
 {
     OTA_Security_Init();
     ResetContext();
 }
 
+/**
+  * @brief  Handle incoming OTA transport packet
+  * @param  packet: Pointer to transport packet
+  * @retval true if packet was handled successfully, false otherwise
+  */
 bool OTA_DownloadService_HandlePacket(const OtaTransportPacket_t *packet)
 {
     if (packet == NULL)
@@ -65,22 +74,39 @@ bool OTA_DownloadService_HandlePacket(const OtaTransportPacket_t *packet)
     }
 }
 
+/**
+  * @brief  Abort ongoing OTA download
+  * @param  transport: Transport type that initiated abort
+  * @retval None
+  */
 void OTA_DownloadService_Abort(OtaTransportType_t transport)
 {
     (void)transport;
     ResetContext();
 }
 
+/**
+  * @brief  Check if OTA download is currently active
+  * @retval true if download is in progress, false otherwise
+  */
 bool OTA_DownloadService_IsActive(void)
 {
     return s_ctx.active;
 }
 
+/**
+  * @brief  Get expected packet sequence number
+  * @retval Expected sequence number for next packet
+  */
 uint32_t OTA_DownloadService_GetExpectedSequence(void)
 {
     return s_ctx.expected_sequence;
 }
 
+/**
+  * @brief  Reset download context to initial state
+  * @retval None
+  */
 static void ResetContext(void)
 {
     memset(&s_ctx, 0, sizeof(s_ctx));
@@ -88,6 +114,11 @@ static void ResetContext(void)
     s_ctx.running_crc = 0xFFFFFFFFU;
 }
 
+/**
+  * @brief  Begin new OTA download session
+  * @param  packet: Pointer to control packet with download parameters
+  * @retval true if download session started successfully, false otherwise
+  */
 static bool BeginDownload(const OtaTransportPacket_t *packet)
 {
     if (packet->total_size == 0U || packet->total_size > OTA_BANK_SIZE)
@@ -138,6 +169,11 @@ static bool BeginDownload(const OtaTransportPacket_t *packet)
     return true;
 }
 
+/**
+  * @brief  Handle data packet during OTA download
+  * @param  packet: Pointer to data packet
+  * @retval true if data was written successfully, false otherwise
+  */
 static bool HandleDataPacket(const OtaTransportPacket_t *packet)
 {
     if (!s_ctx.active)
@@ -186,6 +222,10 @@ static bool HandleDataPacket(const OtaTransportPacket_t *packet)
     return true;
 }
 
+/**
+  * @brief  Finalize OTA download with CRC and signature validation
+  * @retval true if download completed and validated successfully, false otherwise
+  */
 static bool FinalizeDownload(void)
 {
     uint32_t final_crc = s_ctx.running_crc;
