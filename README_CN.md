@@ -207,6 +207,18 @@ MEMORY
 
 ## 版本历史
 
+### v1.5.0 (2025-03-XX)
+- `bsp_ota_meta_automotive.*` 扩展了 OTA 元数据，新增 VIN、授权信息、诊断日志以及更丰富的统计字段
+- 新增 `bootloader_main_automotive.c`，整合汽车级元数据、多级看门狗以及 CAN 传输钩子
+- `bsp_watchdog_automotive.*` 引入多层保护（系统/升级/通信看门狗）并记录事件
+- 新增 `bsp_power_monitor.*`，在升级前实时检测 12V 供电稳定性并可配置阈值
+
+### v1.4.1 (2025-02-XX)
+- 修复 STM32F1 上 CAN HAL API 使用（`HAL_CAN_GetRxMessage`、FIFO 命名与 BOF 错误码）
+- 调整 `FilterFifoAssignment` 大小写以匹配 HAL 头文件
+- 确保 CAN 传输辅助模块可在 F1 HAL 下正常编译
+- 为汽车 OTA 模式提供 CAN 兼容性修复
+
 ### v1.2.0 (2025-02-XX)
 - ✅ 双 Bank 布局 + 元数据页
 - ✅ OTA 下载服务 + BLE/RF 传输桩

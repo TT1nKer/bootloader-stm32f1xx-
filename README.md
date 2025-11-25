@@ -21,7 +21,7 @@ Minimalist bootloader for STM32F103 microcontroller with 8KB flash constraint.
 0x0800F000 - 0x0800FFFF (  4KB) : Device configuration / reserved
 ```
 
-**Bootloader usage**: 4012 bytes / 8192 bytes (48.97%)
+**Bootloader usage**: 5084 bytes / 8192 bytes (62.05%) *(arm-none-eabi-size build/bootloader.elf)*
 
 ## OTA Workflow
 
@@ -206,6 +206,18 @@ If LED blinks rapidly every 3 seconds, the bootloader is stuck in `Error_Handler
 ```
 
 ## Version History
+
+### v1.5.0 (2025-03-XX)
+- Automotive OTA metadata now extends `OtaMetadata_t` with VIN, authorization, diagnostic log, and richer statistics (`bsp_ota_meta_automotive.*`)
+- Added `bootloader_main_automotive.c` to wire metadata, multi-watchdog supervision, CAN hooks, and upgrade-state logging
+- Introduced `bsp_watchdog_automotive.*` with tiered protection levels plus upgrade/communication watchdog coverage
+- Added `bsp_power_monitor.*` to gate OTA on stable 12V, log power anomalies, and expose adjustable thresholds
+
+### v1.4.1 (2025-02-XX)
+- Fixed STM32F1 CAN HAL API usage (`HAL_CAN_GetRxMessage`, FIFO naming, BOF error code)
+- Adjusted `FilterFifoAssignment` casing to match HAL headers
+- Ensured CAN transport helpers build cleanly on F1 HAL
+- General CAN transport compatibility fixes for automotive OTA mode
 
 ### v1.2.0 (2025-02-XX)
 - ✅ Dual-bank flash layout (24KB banks) + metadata region
