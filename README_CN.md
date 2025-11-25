@@ -21,7 +21,7 @@ STM32F103 微控制器的极简引导程序，Flash 限制 8KB。
 0x0800F000 - 0x0800FFFF (  4KB) : 设备配置/保留
 ```
 
-**Bootloader 占用**: 4012 字节 / 8192 字节 (48.97%)
+**Bootloader 占用**: 5084 字节 / 8192 字节 (62.05%)  *(arm-none-eabi-size build/bootloader.elf)*
 
 ## OTA 工作流
 
