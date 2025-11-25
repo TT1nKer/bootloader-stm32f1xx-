@@ -1,3 +1,9 @@
+v1.5.0 - Automotive Reliability Extensions
+- Automotive OTA metadata now extends `OtaMetadata_t` with VIN, authorization, statistics, and a 16-entry diagnostic log via `bsp_ota_meta_automotive.*`
+- Added automotive bootloader flow (`bootloader_main_automotive.c`) that wires in the new metadata layer, multi-watchdog supervision, and CAN transport hooks
+- Introduced `bsp_watchdog_automotive.*` with tiered protection levels plus upgrade/communication watchdogs that log failures into metadata
+- Added `bsp_power_monitor.*` to gate upgrades on stable 12V supply, log power anomalies, and expose threshold controls for automotive safety
+
 v1.4.1 - CAN Transport API Fixes
 - Fixed CAN HAL API calls for STM32F1 compatibility
 - Changed HAL_CAN_GetRxFifoMsg to HAL_CAN_GetRxMessage
