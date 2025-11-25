@@ -94,7 +94,7 @@ HAL_StatusTypeDef OTA_TransportCan_InitCAN(void)
     sFilterConfig.FilterIdLow = CAN_OTA_FILTER_ID_LOW;
     sFilterConfig.FilterMaskIdHigh = CAN_OTA_FILTER_MASK_HIGH;
     sFilterConfig.FilterMaskIdLow = CAN_OTA_FILTER_MASK_LOW;
-    sFilterConfig.FilterFifoAssignment = CAN_RX_FIFO0;
+    sFilterConfig.FilterFIFOAssignment = CAN_RX_FIFO0;
     sFilterConfig.FilterActivation = ENABLE;
     sFilterConfig.SlaveStartFilterBank = 14;
 
@@ -128,7 +128,7 @@ bool OTA_TransportCan_IsBusActive(void)
     uint32_t error_code = HAL_CAN_GetError(&hcan1);
     if (error_code != HAL_CAN_ERROR_NONE) {
         // Try to recover from BUS OFF
-        if (error_code & HAL_CAN_ERROR_BUSOFF) {
+        if (error_code & HAL_CAN_ERROR_BOF) {
             HAL_CAN_ResetError(&hcan1);
             HAL_CAN_Start(&hcan1);
         }
@@ -154,7 +154,7 @@ void OTA_TransportCan_Poll(void)
     }
 
     // Check for received messages
-    if (HAL_CAN_GetRxFifoMsg(&hcan1, CAN_RX_FIFO0, &rx_header, rx_data) == HAL_OK) {
+    if (HAL_CAN_GetRxMessage(&hcan1, CAN_RX_FIFO0, &rx_header, rx_data) == HAL_OK) {
         // Check if this is an OTA message
         if ((rx_header.StdId & CAN_OTA_PGN_MASK) == CAN_OTA_PGN_VALUE) {
             // Parse frame

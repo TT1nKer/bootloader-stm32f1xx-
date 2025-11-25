@@ -1,3 +1,10 @@
+v1.4.1 - CAN Transport API Fixes
+- Fixed CAN HAL API calls for STM32F1 compatibility
+- Changed HAL_CAN_GetRxFifoMsg to HAL_CAN_GetRxMessage
+- Fixed FilterFifoAssignment to FilterFIFOAssignment (capital FIFO)
+- Fixed HAL_CAN_ERROR_BUSOFF to HAL_CAN_ERROR_BOF
+- All CAN transport functions now use correct STM32F1 HAL API
+
 v1.4.0 - Automotive-Grade Features Implementation
 - Power Monitoring: ADC-based voltage monitoring with stability detection
 - CAN Transport: J1939-style CAN OTA transport layer with fragmentation
