@@ -50,6 +50,9 @@ extern "C" {
 #define FIRMWARE_VERSION_ADDRESS    (CONFIG_AREA_ADDRESS + 0x08U)
 #define UPGRADE_STATE_ADDRESS       (CONFIG_AREA_ADDRESS + 0x0CU)
 
+/* Public key storage for signature verification */
+#define ECDSA_PUBLIC_KEY_ADDRESS    (CONFIG_AREA_ADDRESS + 0x10U)  /* 64 bytes */
+
 /* Application helpers (defaults to Bank0 until metadata promotes Bank1) */
 #define APP_BANK_COUNT              2U
 #define APP_BANK0_INDEX             0U
@@ -77,6 +80,11 @@ typedef enum {
 
 /* Watchdog Configuration */
 #define WATCHDOG_TIMEOUT_MS         3000            // 3 seconds
+
+/* Feature Enable Flags */
+#define ENABLE_POWER_MONITOR        1               // Enable power monitoring
+#define ENABLE_CAN_TRANSPORT        1               // Enable CAN transport
+#define ENABLE_SIGNATURE_VERIFY     0               // Enable signature verification (optional - adds ~8KB)
 
 #ifdef __cplusplus
 }

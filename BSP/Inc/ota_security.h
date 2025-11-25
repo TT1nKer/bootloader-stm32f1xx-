@@ -22,6 +22,7 @@ bool OTA_Security_ValidateSignature(const uint8_t *signature,
                                     uint32_t signature_length,
                                     uint32_t image_address,
                                     uint32_t image_size);
+bool OTA_Security_CalculateSHA256(uint32_t image_address, uint32_t image_size, uint8_t hash[32]);
 
 #ifdef __cplusplus
 }

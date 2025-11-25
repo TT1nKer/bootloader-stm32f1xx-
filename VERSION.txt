@@ -1,3 +1,11 @@
+v1.4.0 - Automotive-Grade Features Implementation
+- Power Monitoring: ADC-based voltage monitoring with stability detection
+- CAN Transport: J1939-style CAN OTA transport layer with fragmentation
+- Digital Signatures: SHA-256 implementation + ECDSA scaffolding
+- Enhanced Security: Public key storage and signature verification framework
+- Conditional Compilation: Feature flags for power monitor, CAN transport, and signature verification
+- Code Fixes: Fixed duplicate #endif, macro ordering, and integer division warnings
+
 v1.3.0 - Documentation & Code Quality Improvements
 - Added comprehensive Doxygen documentation for all functions (33 functions across 11 files)
 - Documented all BSP layer functions (flash, OTA metadata, watchdog, jump, upgrade flag)

@@ -30,7 +30,8 @@ extern "C" {
 typedef enum
 {
     OTA_TRANSPORT_BLE = 0,
-    OTA_TRANSPORT_RF = 1
+    OTA_TRANSPORT_RF = 1,
+    OTA_TRANSPORT_CAN = 2
 } OtaTransportType_t;
 
 typedef enum
@@ -68,6 +69,10 @@ bool OTA_TransportBle_Submit(const OtaTransportPacket_t *packet);
 void OTA_TransportRf_Init(void);
 void OTA_TransportRf_Poll(void);
 bool OTA_TransportRf_Submit(const OtaTransportPacket_t *packet);
+
+void OTA_TransportCan_Init(void);
+void OTA_TransportCan_Poll(void);
+bool OTA_TransportCan_Submit(const OtaTransportPacket_t *packet);
 
 #ifdef __cplusplus
 }
